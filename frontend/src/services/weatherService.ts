@@ -4,8 +4,6 @@ const API_BASE_URL = '/api/proxy';
 
 const controller = new AbortController();
 
-console.log('Using API base URL:', API_BASE_URL);
-
 export const getWeatherByCity = async (
   cityName: string,
   units: Units = Units.Metric
@@ -17,7 +15,6 @@ export const getWeatherByCity = async (
     const signal = newController.signal;
     
     const url = `${API_BASE_URL}/weather/${encodeURIComponent(cityName)}?units=${units}`;
-    console.log('Fetching weather data from:', url);
     
     const response = await fetch(url, { 
       next: { revalidate: 600 },  
@@ -36,8 +33,6 @@ export const getWeatherByCity = async (
   } catch (error) {
     
     if (error instanceof DOMException && error.name === 'AbortError') {
-      console.log('Weather request aborted');
-      
       return {} as WeatherData;
     }
     console.error('Error fetching weather data:', error);
@@ -53,7 +48,6 @@ export const getWeatherByCoordinates = async (
   try {
     
     const url = `${API_BASE_URL}/weather-by-location?lat=${latitude}&lon=${longitude}&units=${units}`;
-    console.log('Fetching weather data by coordinates from:', url);
     
     const response = await fetch(url, {
       next: { revalidate: 600 },  
@@ -77,7 +71,6 @@ export const getForecastByCity = async (
 ): Promise<HourlyForecastResponse> => {
   try {
     const url = `${API_BASE_URL}/forecast/${encodeURIComponent(cityName)}?units=${units}`;
-    console.log('Fetching forecast data from:', url);
     
     const response = await fetch(url, {
       next: { revalidate: 1800 },  
@@ -110,7 +103,6 @@ export const getForecastByCoordinates = async (
   try {
     
     const url = `${API_BASE_URL}/forecast-by-location?lat=${latitude}&lon=${longitude}&units=${units}`;
-    console.log('Fetching forecast data by coordinates from:', url);
     
     const response = await fetch(url, {
       next: { revalidate: 1800 },  

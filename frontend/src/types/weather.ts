@@ -58,13 +58,66 @@ export interface LocationData {
   timestamp: number;
 }
 
-export interface LocationContextType {
+// Zustand store interfaces replacing the old context types
+export interface LocationStore {
+  // Location data
   location: LocationData | null;
   loading: boolean;
   error: string | null;
   highPrecision: boolean;
   isLocationValid: boolean;
   locationValidationMessage: string | null;
-  setHighPrecision: (value: boolean) => void;
+  watchId: number | null;
+  
+  // Simple actions
+  setLocation: (location: LocationData | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  setHighPrecision: (highPrecision: boolean) => void;
+  setLocationValid: (isValid: boolean) => void;
+  setLocationValidationMessage: (message: string | null) => void;
+  setWatchId: (id: number | null) => void;
+  
+  // Complex actions
+  startLocationTracking: () => Promise<void>;
+  stopLocationTracking: () => void;
   refreshLocation: () => Promise<void>;
+  validateLocation: (locationData: LocationData) => Promise<boolean>;
+  processPosition: (position: GeolocationPosition) => Promise<void>;
+  handlePositionError: (error: GeolocationPositionError) => void;
+}
+
+export interface WeatherCache {
+  data: WeatherData | HourlyForecastResponse;
+  timestamp: number;
+}
+
+export interface WeatherStore {
+  // Weather data
+  weather: WeatherData | null;
+  forecast: HourlyForecastResponse | null;
+  isLoading: boolean;
+  error: string | null;
+  units: Units;
+  fallbackCity: string;
+  
+  // Caches
+  weatherCache: Map<string, WeatherCache>;
+  forecastCache: Map<string, WeatherCache>;
+  
+  // Actions
+  setWeather: (weather: WeatherData | null) => void;
+  setForecast: (forecast: HourlyForecastResponse | null) => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+  setUnits: (units: Units) => void;
+  setFallbackCity: (city: string) => void;
+  
+  // Fetch methods
+  fetchWeatherData: (
+    location: LocationData | null, 
+    isLocationValid: boolean, 
+    forceRefresh?: boolean
+  ) => Promise<void>;
+  refreshWeather: () => Promise<void>;
 } 

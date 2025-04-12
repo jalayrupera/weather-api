@@ -1,27 +1,25 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { LocationProvider } from "../contexts/LocationContext";
+import './globals.css'
+import { Inter } from 'next/font/google'
+import StoreInitializer from '../components/StoreInitializer'
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: "Smart Choices Weather App",
-  description: "Get accurate, block-level weather and forecasts for your exact location",
-};
+export const metadata = {
+  title: 'Smart Weather',
+  description: 'Get accurate weather forecasts for your area',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
-        <LocationProvider>
-          {children}
-        </LocationProvider>
+      <body className={inter.className}>
+        <StoreInitializer />
+        {children}
       </body>
     </html>
-  );
+  )
 }
