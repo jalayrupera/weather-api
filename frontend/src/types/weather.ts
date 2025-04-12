@@ -55,13 +55,12 @@ export interface LocationData {
   latitude: number;
   longitude: number;
   accuracy: number;
-  timestamp: number;
 }
 
-// Zustand store interfaces replacing the old context types
 export interface LocationStore {
-  // Location data
   location: LocationData | null;
+  coordinates: LocationData & { timestamp: number } | null;
+  locationHistory: Array<LocationData & { timestamp: number }>;
   loading: boolean;
   error: string | null;
   highPrecision: boolean;
@@ -69,7 +68,6 @@ export interface LocationStore {
   locationValidationMessage: string | null;
   watchId: number | null;
   
-  // Simple actions
   setLocation: (location: LocationData | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -78,13 +76,10 @@ export interface LocationStore {
   setLocationValidationMessage: (message: string | null) => void;
   setWatchId: (id: number | null) => void;
   
-  // Complex actions
-  startLocationTracking: () => Promise<void>;
+  startLocationTracking: () => void;
   stopLocationTracking: () => void;
-  refreshLocation: () => Promise<void>;
-  validateLocation: (locationData: LocationData) => Promise<boolean>;
+  validateLocation: (location: LocationData) => Promise<boolean>;
   processPosition: (position: GeolocationPosition) => Promise<void>;
-  handlePositionError: (error: GeolocationPositionError) => void;
 }
 
 export interface WeatherCache {
@@ -93,29 +88,25 @@ export interface WeatherCache {
 }
 
 export interface WeatherStore {
-  // Weather data
   weather: WeatherData | null;
   forecast: HourlyForecastResponse | null;
   isLoading: boolean;
   error: string | null;
   units: Units;
   
-  // Caches
   weatherCache: Map<string, WeatherCache>;
   forecastCache: Map<string, WeatherCache>;
   
-  // Actions
   setWeather: (weather: WeatherData | null) => void;
   setForecast: (forecast: HourlyForecastResponse | null) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setUnits: (units: Units) => void;
   
-  // Fetch methods
   fetchWeatherData: (
     location: LocationData | null, 
     isLocationValid: boolean, 
     forceRefresh?: boolean
   ) => Promise<void>;
   refreshWeather: () => Promise<void>;
-} 
+}

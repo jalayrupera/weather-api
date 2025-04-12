@@ -20,23 +20,16 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   units,
   highPrecision = true,
 }) => {
-  // Store last update time in state to fix hydration issues
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  
-  // Use ref to track the interval and prevent multiple intervals
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Use ref to track if component is mounted to avoid state updates after unmount
   const isMounted = useRef(false);
   
-  // Safe setState function that only updates state if component is mounted
   const safeSetLastUpdated = useCallback((value: string) => {
     if (isMounted.current) {
       setLastUpdated(value);
     }
   }, []);
   
-  // Update time function that can be called without creating infinite loops
   const updateTime = useCallback(() => {
     try {
       safeSetLastUpdated(new Date().toLocaleTimeString());
@@ -45,24 +38,17 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
     }
   }, [safeSetLastUpdated]);
   
-  // Set up time refresh interval only once when component mounts
   useEffect(() => {
-    // Mark as mounted
     isMounted.current = true;
-    
-    // Set initial time
     updateTime();
     
-    // Clean up any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
     
-    // Set up new interval
     intervalRef.current = setInterval(updateTime, 60000);
     
-    // Clean up on unmount
     return () => {
       isMounted.current = false;
       if (intervalRef.current) {
@@ -70,7 +56,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
         intervalRef.current = null;
       }
     };
-  }, [updateTime]);  // Only depend on the stable updateTime callback
+  }, [updateTime]);
   
   const sanitizeName = (name: string) => {
     return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -123,7 +109,6 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   }
 
   if (error && weather) {
-    // Skip showing the error banner for errors related to location during unit changes
     const shouldShowWarning = !error.includes('location');
     
     return (

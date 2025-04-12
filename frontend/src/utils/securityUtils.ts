@@ -26,15 +26,9 @@ export const getUserIP = async (): Promise<string | null> => {
   try {
     const response = await fetch("https://api.ipify.org?format=json");
     const data = await response.json();
-
-    if (data && data.ip) {
-      console.log("User IP detected:", data.ip);
-      return data.ip;
-    }
-
-    return null;
+    
+    return data.ip;
   } catch (error) {
-    console.error("Error fetching user IP:", error);
     return null;
   }
 };
@@ -285,5 +279,171 @@ export const verifyClient = async (
       isValid: true,
       message: null,
     };
+  }
+};
+
+export const checkTimezoneConsistency = (
+  latitude: number,
+  longitude: number
+): Promise<{ consistent: boolean; deviceTimezone: string; locationTimezone?: string }> => {
+  return new Promise(async (resolve) => {
+    try {
+      // Get the device's timezone
+      const deviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Get the timezone at the provided coordinates
+      try {
+        const response = await fetch(
+          `https://api.timezonedb.com/v2.1/get-time-zone?key=YOUR_API_KEY&format=json&by=position&lat=${latitude}&lng=${longitude}`
+        );
+        const data = await response.json();
+        
+        if (data.status === "OK") {
+          const locationTimezone = data.zoneName;
+          
+          // Check if timezones match or are close
+          // We're being lenient here because timezone APIs can differ in exact naming
+          const isConsistent = deviceTimezone.includes(locationTimezone) || 
+                               locationTimezone.includes(deviceTimezone) ||
+                               areTimezonesClose(deviceTimezone, locationTimezone);
+          
+          resolve({
+            consistent: isConsistent,
+            deviceTimezone,
+            locationTimezone
+          });
+        } else {
+          // If API fails, we'll be lenient and assume it's consistent
+          resolve({
+            consistent: true,
+            deviceTimezone
+          });
+        }
+      } catch (error) {
+        // If there's an error, we'll be lenient and assume it's consistent
+        resolve({
+          consistent: true,
+          deviceTimezone
+        });
+      }
+    } catch (error) {
+      // If there's a general error, we'll be lenient
+      resolve({
+        consistent: true,
+        deviceTimezone: "unknown"
+      });
+    }
+  });
+};
+
+// Helper function to determine if two timezones are likely to be in the same region
+const areTimezonesClose = (timezone1: string, timezone2: string): boolean => {
+  // Extract regions from timezone strings (e.g., "America/New_York" -> "America")
+  const region1 = timezone1.split("/")[0];
+  const region2 = timezone2.split("/")[0];
+  
+  // If the regions match, they're close enough
+  return region1 === region2;
+};
+
+// Check if the timestamp is consistent with the current time
+export const checkTimestampConsistency = (timestamp: number): boolean => {
+  const timestampDate = new Date(timestamp);
+  const currentDate = new Date();
+  
+  // Get the difference in minutes
+  const diffInMinutes = Math.abs(
+    (currentDate.getTime() - timestampDate.getTime()) / (1000 * 60)
+  );
+  
+  // If the difference is more than 5 minutes, it's suspicious
+  return diffInMinutes <= 5;
+};
+
+// Function to detect VPNs and proxies
+export const detectVPN = async (): Promise<boolean> => {
+  try {
+    // Try to detect VPN or proxy using a service
+    const response = await fetch("https://ipqualityscore.com/api/json/ip/YOUR_API_KEY/", {
+      method: "GET",
+    });
+    
+    const data = await response.json();
+    
+    // If the service indicates a proxy, VPN, or Tor usage, return true
+    if (data && (data.proxy || data.vpn || data.tor)) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    // If the check fails, we'll be lenient and assume no VPN
+    return false;
+  }
+};
+
+// Function to save the fingerprint in localStorage
+export const saveBrowserFingerprint = (): string => {
+  const fingerprint = generateBrowserFingerprint();
+  localStorage.setItem("browserFingerprint", fingerprint);
+  return fingerprint;
+};
+
+// Function to check if the current fingerprint matches the saved one
+export const checkBrowserFingerprint = (): boolean => {
+  const savedFingerprint = localStorage.getItem("browserFingerprint");
+  
+  // If there's no saved fingerprint, save the current one and return true
+  if (!savedFingerprint) {
+    saveBrowserFingerprint();
+    return true;
+  }
+  
+  const currentFingerprint = generateBrowserFingerprint();
+  
+  // If the fingerprints don't match, it's suspicious
+  const matched = currentFingerprint === savedFingerprint;
+  
+  return matched;
+};
+
+// Comprehensive security check
+export const performSecurityCheck = async (
+  latitude: number,
+  longitude: number,
+  timestamp: number
+): Promise<{ success: boolean; reason?: string }> => {
+  try {
+    // Check timestamp consistency
+    const isTimestampConsistent = checkTimestampConsistency(timestamp);
+    if (!isTimestampConsistent) {
+      return { 
+        success: false,
+        reason: "Timestamp is inconsistent with current time" 
+      };
+    }
+    
+    // Check browser fingerprint
+    const isFingerprintValid = checkBrowserFingerprint();
+    if (!isFingerprintValid) {
+      return { 
+        success: false,
+        reason: "Browser fingerprint has changed" 
+      };
+    }
+    
+    // Check timezone consistency
+    const timezoneCheck = await checkTimezoneConsistency(latitude, longitude);
+    if (!timezoneCheck.consistent) {
+      return { 
+        success: false,
+        reason: "Device timezone doesn't match location timezone" 
+      };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    // If there's any error in the security checks, we'll be lenient
+    return { success: true };
   }
 };

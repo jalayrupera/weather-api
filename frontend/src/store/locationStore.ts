@@ -604,9 +604,7 @@ export const useLocationStore = create<LocationStore>((set, get) => ({
 
     return true;
   },
-})); 
-
-export async function validateLocation(position: GeolocationPosition) {
+})); export async function validateLocation(position: GeolocationPosition) {
   const { latitude, longitude } = position.coords;
 
   if (!position || !validateCoordinates(latitude, longitude)) {
@@ -656,3 +654,4 @@ export async function validateLocation(position: GeolocationPosition) {
     return { success: true }; // Silently pass if the VPN check fails
   }
 } 
+
