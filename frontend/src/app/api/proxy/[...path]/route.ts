@@ -3,17 +3,23 @@ import { NextRequest, NextResponse } from 'next/server';
 // Environment variables
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
+type RouteContext = {
+  params: Promise<{
+    path: string[];
+  }>;
+};
+
 // API route handler for all proxy paths
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: RouteContext
 ) {
   try {
-    // Build the backend URL from the path parameters
-    const path = params.path.join('/');
+    const { path } = await context.params;
+    const pathString = Array.isArray(path) ? path.join('/') : '';
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
-    const backendUrl = `${BACKEND_URL}/${path}${queryString ? `?${queryString}` : ''}`;
+    const backendUrl = `${BACKEND_URL}/${pathString}${queryString ? `?${queryString}` : ''}`;
     
     // Forward the request to the backend
     const response = await fetch(backendUrl, {
@@ -22,7 +28,6 @@ export async function GET(
         'Content-Type': 'application/json',
       },
       cache: 'no-store', // Don't cache API responses
-      next: { revalidate: 0 }, // Revalidate on every request
     });
 
     // If the response is not ok, throw an error
