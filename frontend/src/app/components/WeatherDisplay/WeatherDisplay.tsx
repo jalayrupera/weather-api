@@ -145,7 +145,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
             <div>
               <h2 className="text-3xl font-bold" lang="en">{weather.name ? sanitizeName(weather.name) : 'Unknown Location'}</h2>
               <div className="mt-1 text-xs bg-white bg-opacity-20 rounded px-2 py-1 inline-block">
-                Fallback Location
+                {getLocationType()}
               </div>
             </div>
             <div className="text-right">

@@ -2,9 +2,7 @@ import { create } from 'zustand';
 import { WeatherData, Units, HourlyForecastResponse, LocationData, WeatherStore } from '../types/weather';
 import { 
   getWeatherByCoordinates, 
-  getWeatherByCity, 
-  getForecastByCoordinates, 
-  getForecastByCity 
+  getForecastByCoordinates 
 } from '../services/weatherService';
 import { useLocationStore } from './locationStore';
 
@@ -23,7 +21,6 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   isLoading: true,
   error: null,
   units: Units.Metric,
-  fallbackCity: 'Ahmedabad',
   
   // Initialize caches
   weatherCache: new Map<string, WeatherCache>(),
@@ -34,7 +31,6 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   setForecast: (forecast) => set({ forecast }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
-  setFallbackCity: (city) => set({ fallbackCity: city }),
   
   // Set units and refresh data when units change
   setUnits: (units) => {

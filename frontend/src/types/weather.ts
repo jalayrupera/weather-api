@@ -99,7 +99,6 @@ export interface WeatherStore {
   isLoading: boolean;
   error: string | null;
   units: Units;
-  fallbackCity: string;
   
   // Caches
   weatherCache: Map<string, WeatherCache>;
@@ -111,7 +110,6 @@ export interface WeatherStore {
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setUnits: (units: Units) => void;
-  setFallbackCity: (city: string) => void;
   
   // Fetch methods
   fetchWeatherData: (
